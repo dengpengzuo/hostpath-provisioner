@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: ez-cloud-hostpath-provisioner
+  namespace: kube-system
+  labels:
+    app: ez-cloud-hostpath-provisioner
+spec:
+  selector:
+    matchLabels:
+      app: ez-cloud-hostpath-provisioner
+  template:
+    metadata:
+      labels:
+        app: ez-cloud-hostpath-provisioner
+    spec:
+      priorityClassName: "system-node-critical"
+      serviceAccountName: ez-cloud-hostpath-provisioner-sa
+      containers:
+        - image: "ez-cloud/hostpath-provisioner:v1.0.0"
+          name: hostpath-provisioner
+          imagePullPolicy: "IfNotPresent"
+          args:
+            - --log_dir=/
+            - --log_file=hostpath.log
+            - --mount-dir=/home/data
+            - --provisioner-name=$(PROVISIONER_NAME)
+          securityContext:
+            privileged: true
+            capabilities:
+              add: ["SYS_ADMIN"]
+            allowPrivilegeEscalation: true
+          env:
+            - name: PROVISIONER_NAME
+              value: ez-cloud/hostpath
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - name: hostdir
+              mountPropagation: "HostToContainer"
+              mountPath: /home/data
+      volumes:
+        - name: hostdir
+          hostPath:
+            path: /home/data
