@@ -17,12 +17,12 @@ import (
 
 type hostpathProvisioner struct {
 	provisionerName string
-	mountDir        string
+	hostDir         string
 	identity        string
 	allocInf        DeviceAllocInf
 }
 
-func StartHotFsProvisioner(provisionerName, vgName string) {
+func StartHotFsProvisioner(provisionerName, hostDir string) {
 	// Create an InClusterConfig and use it to create a client for the controller
 	// to use to communicate with Kubernetes
 	config, err := rest.InClusterConfig()
@@ -41,9 +41,9 @@ func StartHotFsProvisioner(provisionerName, vgName string) {
 		klog.Fatalf("Error getting server version: %v", err)
 	}
 
-	devInf := NewhostpathDevice(vgName)
+	devInf := NewHostPathDevice(hostDir)
 	if err = devInf.Init(); err != nil {
-		klog.Fatalf("Error init hostpath %s err: %v", vgName, err)
+		klog.Fatalf("Error init hostpath %s err: %v", hostDir, err)
 	}
 
 	if _, isOk := devInf.(DeviceAllocInf); !isOk {
@@ -51,7 +51,7 @@ func StartHotFsProvisioner(provisionerName, vgName string) {
 	}
 
 	// Create the provisioner: it implements the Provisioner interface expected by the controller
-	hostpathProvisioner := NewhostpathProvisioner(provisionerName, vgName, devInf.(DeviceAllocInf))
+	hostpathProvisioner := NewhostpathProvisioner(provisionerName, hostDir, devInf.(DeviceAllocInf))
 
 	// Start the provision controller which will dynamically provision hostPath PVs
 	pc := controller.NewProvisionController(clientset, provisionerName, hostpathProvisioner, serverVersion.GitVersion)
@@ -61,7 +61,7 @@ func StartHotFsProvisioner(provisionerName, vgName string) {
 }
 
 // NewhostpathProvisioner creates a new hostpath provisioner
-func NewhostpathProvisioner(provisionerName, mountDir string, allocInf DeviceAllocInf) controller.Provisioner {
+func NewhostpathProvisioner(provisionerName, hostDir string, allocInf DeviceAllocInf) controller.Provisioner {
 	nodeName := os.Getenv("MY_NODE_NAME")
 	if nodeName == "" {
 		klog.Fatal("env variable MY_NODE_NAME must be set so that this provisioner can identify itself")
@@ -69,7 +69,7 @@ func NewhostpathProvisioner(provisionerName, mountDir string, allocInf DeviceAll
 
 	return &hostpathProvisioner{
 		provisionerName: provisionerName,
-		mountDir:        mountDir,
+		hostDir:         hostDir,
 		identity:        nodeName,
 		allocInf:        allocInf,
 	}
@@ -82,13 +82,16 @@ func (p *hostpathProvisioner) Provision(ctx context.Context, options controller.
 	}
 
 	pvsize := options.PVC.Spec.Resources.Requests[v1.ResourceName(v1.ResourceStorage)]
-	fstype := options.StorageClass.Parameters["fsType"]
+	fstype, isok := options.StorageClass.Parameters["fsType"]
+	if !isok {
+		fstype = "ext4"
+	}
 
 	if err := p.allocInf.Alloc(options.PVName, pvsize, fstype); err != nil {
 		return nil, controller.ProvisioningReschedule, err
 	}
 
-	outsidePath := filepath.Join(p.mountDir, options.PVName)
+	outsidePath := filepath.Join(p.hostDir, options.PVName)
 	nodeAffinity, e := generateVolumeNodeAffinity(options.SelectedNode)
 	if e != nil {
 		return nil, controller.ProvisioningReschedule, e

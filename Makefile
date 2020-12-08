@@ -14,8 +14,6 @@ all: image
 push:
 	$(DOCKER) push "$(IMAGE):$(VERSION)"
 
-image: build
+image:
+	CGO_ENABLED=0 GOOS=${OS} GOARCH=${ARCH} go build -gcflags "-N -l" -o docker/provisioner-amd64.bin ./cmd/main.go
 	docker build --tag $(PV_PROVISIONER):$(VERSION) --file docker/provisioner/Dockerfile  ./docker/
-
-build:
-    CGO_ENABLED=0 GOOS=${OS} GOARCH=${ARCH} go build -gcflags "-N -l" -o docker/provisioner-amd64.bin ./cmd/main.go

@@ -23,7 +23,7 @@ spec:
           args:
             - --log_dir=/
             - --log_file=hostpath.log
-            - --mount-dir=/home/data
+            - --host-dir=/home/data
             - --provisioner-name=$(PROVISIONER_NAME)
           securityContext:
             privileged: true
