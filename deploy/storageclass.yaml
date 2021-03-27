@@ -1,9 +1,9 @@
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: hostpath-one
+  name: local-hdd
 parameters:
   fsType: xfs
 provisioner: ez-cloud/hostpath
-reclaimPolicy: Delete
+reclaimPolicy: Retain
 volumeBindingMode: WaitForFirstConsumer

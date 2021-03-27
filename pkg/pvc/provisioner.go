@@ -87,8 +87,13 @@ func (p *hostpathProvisioner) Provision(ctx context.Context, options controller.
 		fstype = "ext4"
 	}
 
-	if err := p.allocInf.Alloc(options.PVName, pvsize, fstype); err != nil {
+	if err := p.allocInf.Alloc(options.PVName, fstype, pvsize); err != nil {
 		return nil, controller.ProvisioningReschedule, err
+	}
+
+	nodeValue, found := options.SelectedNode.Labels[v1.LabelHostname]
+	if !found {
+		nodeValue = "none-node-name"
 	}
 
 	outsidePath := filepath.Join(p.hostDir, options.PVName)
@@ -100,7 +105,8 @@ func (p *hostpathProvisioner) Provision(ctx context.Context, options controller.
 		ObjectMeta: metav1.ObjectMeta{
 			Name: options.PVName,
 			Annotations: map[string]string{
-				ProvisionerId: p.identity,
+				ProvisionerId:     p.identity,
+				ProvisionerNodeId: nodeValue,
 			},
 		},
 		Spec: v1.PersistentVolumeSpec{
@@ -142,7 +148,7 @@ func (p *hostpathProvisioner) Delete(ctx context.Context, pv *v1.PersistentVolum
 
 	fsType := pv.Spec.Local.FSType
 
-	return p.allocInf.Remove(pv.Name, pv.Spec.PersistentVolumeReclaimPolicy == v1.PersistentVolumeReclaimDelete, fsType)
+	return p.allocInf.Remove(pv.Name, string(pv.Spec.PersistentVolumeReclaimPolicy), *fsType)
 }
 
 func generateVolumeNodeAffinity(node *v1.Node) (*v1.VolumeNodeAffinity, error) {

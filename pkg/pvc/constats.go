@@ -1,7 +1,8 @@
 package pvc
 
 const (
-	ProvisionerName = "ez-cloud/hostpath"
-	DefaultMountDir = "/works"
-	ProvisionerId   = "CloudhostpathProvisionerId"
+	ProvisionerName   = "ez-cloud/hostpath"
+	DefaultMountDir   = "/works"
+	ProvisionerId     = "CloudhostpathProvisionerId"
+	ProvisionerNodeId = "CloudhostpathNodeId"
 )

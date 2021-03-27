@@ -80,6 +80,7 @@ func (f *hostPathDevice) FreeBlocks() uint64 {
 	return f.info.blockFree
 }
 
+// args: fstype, pvsize
 func (f *hostPathDevice) Alloc(id string, args ...interface{}) error {
 	dir := filepath.Join(f.hostDir, id)
 	var mkdirErr error
@@ -93,11 +94,19 @@ func (f *hostPathDevice) Alloc(id string, args ...interface{}) error {
 	return mkdirErr
 }
 
+// args: ReclaimPolicy, fstype
 func (f *hostPathDevice) Remove(id string, args ...interface{}) error {
-	dir := filepath.Join(f.hostDir, id)
-	recDirName := filepath.Join(f.hostDir, newDirName())
-	err := os.Rename(dir, recDirName)
-	return err
+	reclaim, _ := args[0].(string)
+	if reclaim == "Retain" {
+		// 不处理
+	} else if reclaim == "Recycle" {
+		// 不处理
+	} else if reclaim == "Delete" {
+		dir := filepath.Join(f.hostDir, id)
+		recDirName := filepath.Join(f.hostDir, newDirName())
+		return os.Rename(dir, recDirName)
+	}
+	return nil
 }
 
 func writeFsId(idFile string, id string) error {

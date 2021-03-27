@@ -28,7 +28,7 @@ spec:
     - metadata:
         name: hostpath-pvc
       spec:
-        storageClassName: hostpath-one
+        storageClassName: local-hdd
         accessModes:
           - ReadWriteOnce
         resources:
