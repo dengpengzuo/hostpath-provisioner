@@ -36,7 +36,9 @@ func (driver *HostfsCsiDriver) Start(ctrl ...string) error {
 		return err
 	}
 	if proto == "unix" {
-		addr = "/" + addr
+		if addr[0] != '/' {
+			addr = "/" + addr
+		}
 		if e := os.Remove(addr); e != nil && !os.IsNotExist(e) {
 			return fmt.Errorf("Failed to remove %s, error: %s", addr, e.Error())
 		}
