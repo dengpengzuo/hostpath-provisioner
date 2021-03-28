@@ -3,6 +3,7 @@ module ez-cloud/hostpath-provisioner
 go 1.14
 
 require (
+	github.com/container-storage-interface/spec v1.3.0 // indirect
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/uuid v1.1.2
 	golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f
