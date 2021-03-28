@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option go_package = "grpc/inf";
+
+import "google/protobuf/empty.proto";
+
+service NodeService {
+  rpc GetInfo(InfoRequest) returns (InfoResponse) {}
+  rpc Health(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+}
+
+message InfoRequest {
+}
+
+message InfoResponse {
+  string id = 1;
+  string endpoint = 2;
+}
