@@ -33,17 +33,20 @@ spec:
               mountPath: /csi
             - name: registration-dir
               mountPath: /registration
-        - name:
+        - name: hostfs-node-driver
+          image: ezcloud/hostfs:1.0.0
           securityContext:
             privileged: true
             capabilities:
               add: ["SYS_ADMIN"]
             allowPrivilegeEscalation: true
-          image: ezcloud/hostfs:1.0.0
           args:
-            - "-v=5"
-            - "--nodeid=$(NODE_ID)"
-            - "--endpoint=$(CSI_ENDPOINT)"
+            - --v=5
+            - --host-dir=/home/data
+            - --provisioner-name=$(PROVISIONER_NAME)
+            - --nodeid=$(NODE_ID)
+            - --hostfs-type=ids,ns
+            - --endpoint=$(CSI_ENDPOINT)
           env:
             - name: NODE_ID
               valueFrom:
