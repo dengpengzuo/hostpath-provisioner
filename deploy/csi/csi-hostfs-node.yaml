@@ -1,3 +1,5 @@
+
+---
 kind: DaemonSet
 apiVersion: apps/v1
 metadata:
@@ -18,11 +20,11 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["/bin/sh", "-c", "rm -rf /registration/csi-hostfs-reg.sock"]
+                command: ["/bin/sh", "-c", "rm -rf /registration/hostfs.csi.ezcloud.com-reg.sock"]
           args:
             - --v=2
             - --csi-address=/csi/csi.sock
-            - --kubelet-registration-path=/var/lib/kubelet/plugins/csi-hostfs/csi.sock
+            - --kubelet-registration-path=/var/lib/kubelet/plugins/hostfs.csi.ezcloud.com/csi.sock
           env:
             - name: KUBE_NODE_NAME
               valueFrom:
@@ -46,14 +48,14 @@ spec:
             - --provisioner-name=$(PROVISIONER_NAME)
             - --nodeid=$(NODE_ID)
             - --hostfs-type=ids,ns
-            - --endpoint=$(CSI_ENDPOINT)
+            - --csi-address=$(ADDRESS)
           env:
             - name: NODE_ID
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
-            - name: CSI_ENDPOINT
-              value: unix:///csi/csi.sock
+            - name: ADDRESS
+              value: /csi/csi.sock
           volumeMounts:
             - name: socket-dir
               mountPath: /csi
@@ -63,7 +65,7 @@ spec:
       volumes:
         - name: socket-dir
           hostPath:
-            path: /var/lib/kubelet/plugins/csi-hostfs
+            path: /var/lib/kubelet/plugins/hostfs.csi.ezcloud.com
             type: DirectoryOrCreate
         - name: pods-mount-dir
           hostPath:

@@ -17,12 +17,3 @@ push:
 image:
 	CGO_ENABLED=0 GOOS=${OS} GOARCH=${ARCH} go build -gcflags "-N -l" -o docker/provisioner-amd64.bin ./cmd/main.go
 	docker build --tag $(PV_PROVISIONER):$(VERSION) --file docker/provisioner/Dockerfile  ./docker/
-
-initgrpc:
-	## gogofaster > gogofast > gogo == go
-	go get github.com/gogo/protobuf/protoc-gen-gogo
-	go get github.com/gogo/protobuf/protoc-gen-gogofast
-	go get github.com/gogo/protobuf/protoc-gen-gogofaster
-
-generate:
-	protoc -I /usr/local/include/ -I proto --gogofaster_out=plugins=grpc:. proto/node.proto

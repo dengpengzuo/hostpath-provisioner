@@ -1,6 +1,7 @@
 package hostfsCsi
 
 import (
+	"errors"
 	"fmt"
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"google.golang.org/grpc"
@@ -10,10 +11,10 @@ import (
 )
 
 type driverInfo struct {
-	name     string
-	nodeId   string
-	version  string
-	endpoint string
+	name    string
+	nodeId  string
+	version string
+	address string
 }
 
 type HostfsCsiDriver struct {
@@ -24,24 +25,19 @@ type HostfsCsiDriver struct {
 	ns     *nodeServer
 }
 
-func NewHostfsCsiDriver(name, version, nodeid string, endpoint string) *HostfsCsiDriver {
+func NewHostfsCsiDriver(name, version, nodeid string, address string) *HostfsCsiDriver {
 	return &HostfsCsiDriver{
-		info: driverInfo{name: name, version: version, nodeId: nodeid, endpoint: endpoint},
+		info: driverInfo{name: name, version: version, nodeId: nodeid, address: address},
 	}
 }
 
 func (driver *HostfsCsiDriver) Start(ctrl ...string) error {
-	proto, addr, err := parseEndpoint(driver.info.endpoint)
-	if err != nil {
-		return err
+	addr := driver.info.address
+	if driver.info.address[0] != '/' {
+		addr = "/" + driver.info.address
 	}
-	if proto == "unix" {
-		if addr[0] != '/' {
-			addr = "/" + addr
-		}
-		if e := os.Remove(addr); e != nil && !os.IsNotExist(e) {
-			return fmt.Errorf("Failed to remove %s, error: %s", addr, e.Error())
-		}
+	if e := os.Remove(driver.info.address); e != nil && !os.IsNotExist(e) {
+		return errors.New(fmt.Sprintf("Failed to remove unix://%s error:%v", addr, e))
 	}
 
 	driver.server = grpc.NewServer(grpc.ConnectionTimeout(30 * time.Second))
@@ -61,7 +57,7 @@ func (driver *HostfsCsiDriver) Start(ctrl ...string) error {
 		}
 	}
 
-	listener, err2 := net.Listen(proto, addr)
+	listener, err2 := net.Listen("unix", addr)
 	if err2 != nil {
 		return err2
 	}
