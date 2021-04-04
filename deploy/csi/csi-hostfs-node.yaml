@@ -62,6 +62,8 @@ spec:
             - name: pods-mount-dir
               mountPath: /var/lib/kubelet/pods
               mountPropagation: "Bidirectional"
+            - name: work-dir
+              mountPath: /work
       volumes:
         - name: socket-dir
           hostPath:
@@ -75,3 +77,7 @@ spec:
             path: /var/lib/kubelet/plugins_registry
             type: Directory
           name: registration-dir
+        - hostPath:
+            path: /work/hostfs
+            type: Directory
+          name: work-dir

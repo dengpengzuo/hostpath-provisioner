@@ -1,4 +1,4 @@
-package hostfsCsi
+package hostfscsi
 
 import (
 	"fmt"

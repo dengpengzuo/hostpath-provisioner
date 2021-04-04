@@ -47,8 +47,6 @@ spec:
           image: ezcloud/hostfs:v1.0.0
           args:
             - --v=5
-            - --host-dir=/home/data
-            - --provisioner-name=$(PROVISIONER_NAME)
             - --nodeid=$(NODE_ID)
             - --hostfs-type=ids,cs
             - --csi-address=$(ADDRESS)
