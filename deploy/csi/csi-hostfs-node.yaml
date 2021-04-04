@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: node-driver-registrar
-          image: k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.0.1
+          image: csi-node-driver-registrar:latest
           lifecycle:
             preStop:
               exec:
@@ -36,7 +36,7 @@ spec:
             - name: registration-dir
               mountPath: /registration
         - name: hostfs-node-driver
-          image: ezcloud/hostfs:1.0.0
+          image: ezcloud/hostfs:v1.0.0
           securityContext:
             privileged: true
             capabilities:
