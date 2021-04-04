@@ -12,31 +12,35 @@ import (
 
 type driverInfo struct {
 	name    string
-	nodeId  string
 	version string
-	address string
 }
 
 type HostfsCsiDriver struct {
-	info   driverInfo
+	info    driverInfo
+	nodeId  string
+	address string
+
 	server *grpc.Server
-	ids    *identifiedServer
-	cs     *controllerServer
-	ns     *nodeServer
+
+	ids *identifiedServer
+	cs  *controllerServer
+	ns  *nodeServer
 }
 
 func NewHostfsCsiDriver(name, version, nodeid string, address string) *HostfsCsiDriver {
 	return &HostfsCsiDriver{
-		info: driverInfo{name: name, version: version, nodeId: nodeid, address: address},
+		nodeId:  nodeid,
+		address: address,
+		info:    driverInfo{name: name, version: version},
 	}
 }
 
 func (driver *HostfsCsiDriver) Start(ctrl ...string) error {
-	addr := driver.info.address
-	if driver.info.address[0] != '/' {
-		addr = "/" + driver.info.address
+	addr := driver.address
+	if driver.address[0] != '/' {
+		addr = "/" + driver.address
 	}
-	if e := os.Remove(driver.info.address); e != nil && !os.IsNotExist(e) {
+	if e := os.Remove(addr); e != nil && !os.IsNotExist(e) {
 		return errors.New(fmt.Sprintf("Failed to remove unix://%s error:%v", addr, e))
 	}
 
@@ -48,12 +52,12 @@ func (driver *HostfsCsiDriver) Start(ctrl ...string) error {
 		case "ids":
 			driver.ids = &identifiedServer{info: &driver.info}
 			csi.RegisterIdentityServer(driver.server, driver.ids)
-		case "ns":
-			driver.ns = &nodeServer{info: &driver.info}
-			csi.RegisterNodeServer(driver.server, driver.ns)
 		case "cs":
 			driver.cs = &controllerServer{info: &driver.info}
 			csi.RegisterControllerServer(driver.server, driver.cs)
+		case "ns":
+			driver.ns = &nodeServer{info: &driver.info}
+			csi.RegisterNodeServer(driver.server, driver.ns)
 		}
 	}
 

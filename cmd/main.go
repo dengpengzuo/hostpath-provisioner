@@ -4,6 +4,7 @@ import (
 	"ez-cloud/hostpath-provisioner/pkg/hostfsCsi"
 	"flag"
 	"k8s.io/klog/v2"
+	"strings"
 )
 
 const (
@@ -19,5 +20,5 @@ func main() {
 	klog.InitFlags(nil)
 	flag.Parse()
 	csiDriver := hostfsCsi.NewHostfsCsiDriver(CSI_NAME, VERSION, *nodeid, *csiAddress)
-	csiDriver.Start(*hostfsType)
+	csiDriver.Start(strings.Split(*hostfsType, ",")...)
 }

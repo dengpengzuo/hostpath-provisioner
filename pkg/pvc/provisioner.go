@@ -123,8 +123,9 @@ func (p *hostpathProvisioner) Provision(ctx context.Context, options controller.
 			},
 			NodeAffinity:     nodeAffinity,
 			StorageClassName: options.StorageClass.Name,
-			VolumeMode:       options.PVC.Spec.VolumeMode,
-			MountOptions:     options.StorageClass.MountOptions,
+			// 使用pvc的VolumeModel
+			VolumeMode:   options.PVC.Spec.VolumeMode,
+			MountOptions: options.StorageClass.MountOptions,
 		},
 	}
 	return pv, controller.ProvisioningFinished, nil

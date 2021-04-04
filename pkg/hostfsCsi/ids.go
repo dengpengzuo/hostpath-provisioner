@@ -2,14 +2,15 @@ package hostfsCsi
 
 import (
 	"context"
+	"ez-cloud/hostpath-provisioner/pkg/csicommon"
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type identifiedServer struct {
+	*csicommon.DefaultIdentityServer
 	info *driverInfo
-	csi.IdentityServer
 }
 
 // GetPluginInfo returns plugin information.

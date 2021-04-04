@@ -29,6 +29,7 @@ spec:
         name: hostpath-pvc
       spec:
         storageClassName: local-hdd
+        volumeMode: Filesystem
         accessModes:
           - ReadWriteOnce
         resources:
