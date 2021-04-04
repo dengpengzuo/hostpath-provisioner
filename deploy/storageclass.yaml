@@ -4,6 +4,6 @@ metadata:
   name: local-hdd
 parameters:
   fsType: xfs
-provisioner: ez-cloud/hostpath
+provisioner: hostfs.csi.ezcloud.com
 reclaimPolicy: Retain
 volumeBindingMode: WaitForFirstConsumer

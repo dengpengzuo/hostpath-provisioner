@@ -15,8 +15,18 @@ const (
 )
 
 type nodeServer struct {
-	*csicommon.DefaultNodeServer
+	csicommon.DefaultNodeServer
 	info *driverInfo
+}
+
+// 必须实现.
+// kubelet.pluginManager(CSIPlugin, csi.RegistrationHandler)
+// 内部调用了 Node.GetInfo.
+//
+func (ns *nodeServer) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) (*csi.NodeGetInfoResponse, error) {
+	return &csi.NodeGetInfoResponse{
+		NodeId: ns.info.nodeId,
+	}, nil
 }
 
 //
@@ -52,7 +62,6 @@ func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 	klog.V(2).Infof("hostfs-csi NodePublishVolume{ StagingTargetPath := %s, VolumeId := %s, TargetPath := %s } ...", req.StagingTargetPath, req.VolumeId, req.TargetPath)
 	return &csi.NodePublishVolumeResponse{}, nil
 }
-
 func (ns *nodeServer) NodeUnpublishVolume(ctx context.Context, in *csi.NodeUnpublishVolumeRequest) (*csi.NodeUnpublishVolumeResponse, error) {
 	return &csi.NodeUnpublishVolumeResponse{}, nil
 }

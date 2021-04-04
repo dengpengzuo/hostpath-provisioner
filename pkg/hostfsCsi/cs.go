@@ -8,7 +8,7 @@ import (
 )
 
 type controllerServer struct {
-	*csicommon.DefaultControllerServer
+	csicommon.DefaultControllerServer
 	info *driverInfo
 }
 

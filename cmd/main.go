@@ -18,6 +18,7 @@ var hostfsType = flag.String("hostfs-type", "", "ns,ids,cs")
 
 func main() {
 	klog.InitFlags(nil)
+	flag.Set("logtostderr", "true")
 	flag.Parse()
 	csiDriver := hostfsCsi.NewHostfsCsiDriver(CSI_NAME, VERSION, *nodeid, *csiAddress)
 	csiDriver.Start(strings.Split(*hostfsType, ",")...)

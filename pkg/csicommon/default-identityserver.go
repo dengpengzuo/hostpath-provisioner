@@ -14,7 +14,7 @@ type DefaultIdentityServer struct {
 
 // GetPluginInfo returns plugin information.
 func (ids *DefaultIdentityServer) GetPluginInfo(ctx context.Context, req *csi.GetPluginInfoRequest) (*csi.GetPluginInfoResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "")
+	return nil, status.Error(codes.Unimplemented, "getPluginInfo Unimplemented")
 }
 
 // Probe returns empty response.
@@ -24,5 +24,5 @@ func (ids *DefaultIdentityServer) Probe(ctx context.Context, req *csi.ProbeReque
 
 // GetPluginCapabilities returns plugin capabilities.
 func (ids *DefaultIdentityServer) GetPluginCapabilities(ctx context.Context, req *csi.GetPluginCapabilitiesRequest) (*csi.GetPluginCapabilitiesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "")
+	return nil, status.Error(codes.Unimplemented, "getPluginInfo GetPluginCapabilities")
 }

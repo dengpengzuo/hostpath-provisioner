@@ -1,23 +1,23 @@
 package hostfsCsi
 
 import (
-	"errors"
 	"fmt"
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"google.golang.org/grpc"
+	"k8s.io/klog"
 	"net"
 	"os"
 	"time"
 )
 
 type driverInfo struct {
+	nodeId  string
 	name    string
 	version string
 }
 
 type HostfsCsiDriver struct {
 	info    driverInfo
-	nodeId  string
 	address string
 
 	server *grpc.Server
@@ -29,9 +29,8 @@ type HostfsCsiDriver struct {
 
 func NewHostfsCsiDriver(name, version, nodeid string, address string) *HostfsCsiDriver {
 	return &HostfsCsiDriver{
-		nodeId:  nodeid,
 		address: address,
-		info:    driverInfo{name: name, version: version},
+		info:    driverInfo{nodeId: nodeid, name: name, version: version},
 	}
 }
 
@@ -40,10 +39,18 @@ func (driver *HostfsCsiDriver) Start(ctrl ...string) error {
 	if driver.address[0] != '/' {
 		addr = "/" + driver.address
 	}
-	if e := os.Remove(addr); e != nil && !os.IsNotExist(e) {
-		return errors.New(fmt.Sprintf("Failed to remove unix://%s error:%v", addr, e))
+	if e := cleanupSocketFile(addr); e != nil {
+		klog.Errorf("Remove socket: %s with error: %+v", addr, e)
+		os.Exit(1)
 	}
 
+	listener, err2 := net.Listen("unix", addr)
+	if err2 != nil {
+		klog.Errorf("failed to listen on socket: %s with error: %+v", addr, err2)
+		os.Exit(1)
+	}
+
+	klog.Infof("hostfs listen on socket: %s ", addr)
 	driver.server = grpc.NewServer(grpc.ConnectionTimeout(30 * time.Second))
 
 	for i := 0; i < len(ctrl); i++ {
@@ -61,14 +68,34 @@ func (driver *HostfsCsiDriver) Start(ctrl ...string) error {
 		}
 	}
 
-	listener, err2 := net.Listen("unix", addr)
-	if err2 != nil {
-		return err2
-	}
-
+	klog.Infof("hostfs start grpc service ...")
 	return driver.server.Serve(listener)
 }
 
 func (driver *HostfsCsiDriver) Stop() {
 	driver.server.GracefulStop()
+}
+
+func cleanupSocketFile(socketPath string) error {
+	socketExists, err := isSocketExist(socketPath)
+	if err != nil {
+		return err
+	}
+	if socketExists {
+		if err := os.Remove(socketPath); err != nil {
+			return fmt.Errorf("failed to remove stale socket %s with error: %+v", socketPath, err)
+		}
+	}
+	return nil
+}
+
+func isSocketExist(socketPath string) (bool, error) {
+	fi, err := os.Stat(socketPath)
+	if err == nil && (fi.Mode()&os.ModeSocket) != 0 {
+		return true, nil
+	}
+	if err != nil && !os.IsNotExist(err) {
+		return false, fmt.Errorf("failed to stat the socket %s with error: %+v", socketPath, err)
+	}
+	return false, nil
 }

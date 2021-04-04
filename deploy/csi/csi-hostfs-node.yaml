@@ -17,6 +17,7 @@ spec:
       containers:
         - name: node-driver-registrar
           image: csi-node-driver-registrar:latest
+          imagePullPolicy: "IfNotPresent"
           lifecycle:
             preStop:
               exec:
@@ -37,6 +38,7 @@ spec:
               mountPath: /registration
         - name: hostfs-node-driver
           image: ezcloud/hostfs:v1.0.0
+          imagePullPolicy: "IfNotPresent"
           securityContext:
             privileged: true
             capabilities:
@@ -44,8 +46,6 @@ spec:
             allowPrivilegeEscalation: true
           args:
             - --v=5
-            - --host-dir=/home/data
-            - --provisioner-name=$(PROVISIONER_NAME)
             - --nodeid=$(NODE_ID)
             - --hostfs-type=ids,ns
             - --csi-address=$(ADDRESS)

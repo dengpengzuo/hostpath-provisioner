@@ -4,25 +4,15 @@ import (
 	"context"
 	"ez-cloud/hostpath-provisioner/pkg/csicommon"
 	"github.com/container-storage-interface/spec/lib/go/csi"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type identifiedServer struct {
-	*csicommon.DefaultIdentityServer
+	csicommon.DefaultIdentityServer
 	info *driverInfo
 }
 
 // GetPluginInfo returns plugin information.
 func (ids *identifiedServer) GetPluginInfo(ctx context.Context, req *csi.GetPluginInfoRequest) (*csi.GetPluginInfoResponse, error) {
-	if ids.info.name == "" {
-		return nil, status.Error(codes.Unavailable, "Driver name not configured")
-	}
-
-	if ids.info.version == "" {
-		return nil, status.Error(codes.Unavailable, "Driver is missing version")
-	}
-
 	return &csi.GetPluginInfoResponse{
 		Name:          ids.info.name,
 		VendorVersion: ids.info.version,
