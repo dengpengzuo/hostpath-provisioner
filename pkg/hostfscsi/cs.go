@@ -38,15 +38,21 @@ func (cs *controllerServer) ControllerGetCapabilities(ctx context.Context, req *
 					},
 				},
 			},
+			//&csi.ControllerServiceCapability{
+			//    Type: &csi.ControllerServiceCapability_Rpc{
+			//        Rpc: &csi.ControllerServiceCapability_RPC{
+			//            Type: csi.ControllerServiceCapability_RPC_PUBLISH_UNPUBLISH_VOLUME,
+			//        },
+			//    },
+			//},
 		}}, nil
 }
 
 // csi-driver.spec.attachRequired = true
 // csi-attacher call
-func (cs *controllerServer) ControllerPublishVolume(ctx context.Context, req *csi.ControllerPublishVolumeRequest) (*csi.ControllerPublishVolumeResponse, error) {
-	return &csi.ControllerPublishVolumeResponse{}, nil
-}
-
-func (cs *controllerServer) ControllerUnpublishVolume(ctx context.Context, req *csi.ControllerUnpublishVolumeRequest) (*csi.ControllerUnpublishVolumeResponse, error) {
-	return &csi.ControllerUnpublishVolumeResponse{}, nil
-}
+//func (cs *controllerServer) ControllerPublishVolume(ctx context.Context, req *csi.ControllerPublishVolumeRequest) (*csi.ControllerPublishVolumeResponse, error) {
+//    return &csi.ControllerPublishVolumeResponse{}, nil
+//}
+//func (cs *controllerServer) ControllerUnpublishVolume(ctx context.Context, req *csi.ControllerUnpublishVolumeRequest) (*csi.ControllerUnpublishVolumeResponse, error) {
+//    return &csi.ControllerUnpublishVolumeResponse{}, nil
+//}
