@@ -44,7 +44,11 @@ func (ns *nodeServer) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetC
 	}, nil
 }
 
+//
 // csiPlugin[csi-attacher] -> NodeStageVolume
+// 建 Global 目录
+// 	  StagingTargetPath -> /var/lib/kubelet/plugins/kubernetes.io/csi/pv/{pvcid}/globalmount
+//
 func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeRequest) (*csi.NodeStageVolumeResponse, error) {
 	klog.Infof("hostfs-csi NodeStageVolume{ StagingTargetPath := %s, VolumeId := %s } ...", req.StagingTargetPath, req.VolumeId)
 	// 建源目录
@@ -53,8 +57,7 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 	if err != nil {
 		return nil, fmt.Errorf("hostfs-csi NodePublishVolume dir [%s] error:%v", path, err)
 	}
-	// 建 Global 目录
-	// 将源目录挂载到 Global 目录
+	// 建 Global 目录, 将源目录挂载到 Global 目录
 	return &csi.NodeStageVolumeResponse{}, nil
 }
 
@@ -69,6 +72,9 @@ func (ns *nodeServer) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstag
 	return &csi.NodeUnstageVolumeResponse{}, nil
 }
 
+//
+// TargetPath -> /var/lib/kubelet/pods/{podUid}/volumes/kubernetes.io~csi/{pvcid}/mount
+//
 func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
 	klog.Infof("hostfs-csi NodePublishVolume{ StagingTargetPath := %s, VolumeId := %s, TargetPath := %s } ...", req.StagingTargetPath, req.VolumeId, req.TargetPath)
 	path := filepath.Join(DefaultWorkDir, req.VolumeId)
