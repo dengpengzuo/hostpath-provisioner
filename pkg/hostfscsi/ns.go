@@ -47,19 +47,33 @@ func (ns *nodeServer) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetC
 // csiPlugin[csi-attacher] -> NodeStageVolume
 func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeRequest) (*csi.NodeStageVolumeResponse, error) {
 	klog.Infof("hostfs-csi NodeStageVolume{ StagingTargetPath := %s, VolumeId := %s } ...", req.StagingTargetPath, req.VolumeId)
+	// 建源目录
+	path := filepath.Join(DefaultWorkDir, req.VolumeId)
+	err := os.Mkdir(path, DefaultDirModel)
+	if err != nil {
+		return nil, fmt.Errorf("hostfs-csi NodePublishVolume dir [%s] error:%v", path, err)
+	}
+	// 建 Global 目录
+	// 将源目录挂载到 Global 目录
 	return &csi.NodeStageVolumeResponse{}, nil
 }
 
 func (ns *nodeServer) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstageVolumeRequest) (*csi.NodeUnstageVolumeResponse, error) {
 	klog.Infof("hostfs-csi NodeUnstageVolume{ StagingTargetPath := %s, VolumeId := %s } ...", req.StagingTargetPath, req.VolumeId)
+
+	path := filepath.Join(DefaultWorkDir, req.VolumeId)
+	err := os.Rename(path, "."+path)
+	if err != nil {
+		return nil, fmt.Errorf("hostfs-csi NodeUnpublishVolume dir [%s], error: %v ", path, err)
+	}
 	return &csi.NodeUnstageVolumeResponse{}, nil
 }
 
 func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
 	klog.Infof("hostfs-csi NodePublishVolume{ StagingTargetPath := %s, VolumeId := %s, TargetPath := %s } ...", req.StagingTargetPath, req.VolumeId, req.TargetPath)
-
 	path := filepath.Join(DefaultWorkDir, req.VolumeId)
-	err := os.Mkdir(path, DefaultDirModel)
+
+	err := createMountPoint(req.TargetPath)
 	if err != nil {
 		return nil, fmt.Errorf("hostfs-csi NodePublishVolume dir [%s] error:%v", path, err)
 	}
@@ -67,7 +81,7 @@ func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 	opt := []string{"bind"}
 	err = UtilMount(path, req.TargetPath, "", opt[:])
 	if err != nil {
-		klog.Error("hostfs-csi NodePublishVolume dir [%s], error: %v ", req.VolumeId, err)
+		klog.Errorf("hostfs-csi NodePublishVolume dir [%s], error: %v ", req.VolumeId, err)
 		return nil, err
 	}
 	return &csi.NodePublishVolumeResponse{}, nil
@@ -82,10 +96,10 @@ func (ns *nodeServer) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpu
 		return nil, err
 	}
 
-	path := filepath.Join(DefaultWorkDir, req.VolumeId)
-	err = os.Link(path, "."+path)
-	if err != nil {
-		return nil, fmt.Errorf("hostfs-csi NodeUnpublishVolume dir [%s], error: %v ", path, err)
-	}
 	return &csi.NodeUnpublishVolumeResponse{}, nil
+}
+
+// CreateMountPoint creates the directory with given path.
+func createMountPoint(mountPath string) error {
+	return os.MkdirAll(mountPath, 0750)
 }
