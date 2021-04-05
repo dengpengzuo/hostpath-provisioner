@@ -41,12 +41,12 @@ func (cs *DefaultControllerServer) ControllerExpandVolume(ctx context.Context, r
 
 // ListVolumes lists volumes.
 func (cs *DefaultControllerServer) ListVolumes(ctx context.Context, req *csi.ListVolumesRequest) (*csi.ListVolumesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "")
+	return nil, status.Error(codes.Unimplemented, "DefaultControllerServer.ListVolumes")
 }
 
 // GetCapacity get volume capacity.
 func (cs *DefaultControllerServer) GetCapacity(ctx context.Context, req *csi.GetCapacityRequest) (*csi.GetCapacityResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "")
+	return nil, status.Error(codes.Unimplemented, "DefaultControllerServer.GetCapacity")
 }
 
 // ControllerGetCapabilities implements the default GRPC callout.
@@ -72,5 +72,5 @@ func (cs *DefaultControllerServer) ListSnapshots(ctx context.Context, req *csi.L
 
 // ControllerGetVolume fetch volume information.
 func (cs *DefaultControllerServer) ControllerGetVolume(ctx context.Context, req *csi.ControllerGetVolumeRequest) (*csi.ControllerGetVolumeResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "")
+	return nil, status.Error(codes.Unimplemented, "DefaultControllerServer.ControllerGetVolume")
 }
