@@ -57,19 +57,10 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 	if err != nil {
 		return nil, fmt.Errorf("hostfs-csi NodePublishVolume dir [%s] error:%v", path, err)
 	}
+
+	klog.Infof("hostfs-csi NodeStageVolume{ StagingTargetPath := %s, VolumeId := %s } ok1", req.StagingTargetPath, req.VolumeId)
 	// 建 Global 目录, 将源目录挂载到 Global 目录
 	return &csi.NodeStageVolumeResponse{}, nil
-}
-
-func (ns *nodeServer) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstageVolumeRequest) (*csi.NodeUnstageVolumeResponse, error) {
-	klog.Infof("hostfs-csi NodeUnstageVolume{ StagingTargetPath := %s, VolumeId := %s } ...", req.StagingTargetPath, req.VolumeId)
-
-	path := filepath.Join(DefaultWorkDir, req.VolumeId)
-	err := os.Rename(path, "."+path)
-	if err != nil {
-		return nil, fmt.Errorf("hostfs-csi NodeUnpublishVolume dir [%s], error: %v ", path, err)
-	}
-	return &csi.NodeUnstageVolumeResponse{}, nil
 }
 
 //
@@ -90,6 +81,8 @@ func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 		klog.Errorf("hostfs-csi NodePublishVolume dir [%s], error: %v ", req.VolumeId, err)
 		return nil, err
 	}
+
+	klog.Infof("hostfs-csi NodePublishVolume{ StagingTargetPath := %s, VolumeId := %s, TargetPath := %s } ok!", req.StagingTargetPath, req.VolumeId, req.TargetPath)
 	return &csi.NodePublishVolumeResponse{}, nil
 }
 
@@ -101,8 +94,20 @@ func (ns *nodeServer) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpu
 		klog.Error("hostfs-csi NodeUnpublishVolume dir [%s], error: %v ", req.VolumeId, err)
 		return nil, err
 	}
-
+	klog.Infof("hostfs-csi NodeUnpublishVolume{ VolumeId := %s, TargetPath := %s  } ok!", req.VolumeId, req.TargetPath)
 	return &csi.NodeUnpublishVolumeResponse{}, nil
+}
+
+func (ns *nodeServer) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstageVolumeRequest) (*csi.NodeUnstageVolumeResponse, error) {
+	klog.Infof("hostfs-csi NodeUnstageVolume{ StagingTargetPath := %s, VolumeId := %s } ...", req.StagingTargetPath, req.VolumeId)
+
+	path := filepath.Join(DefaultWorkDir, req.VolumeId)
+	err := os.Remove(path)
+	if err != nil {
+		return nil, fmt.Errorf("hostfs-csi NodeUnpublishVolume dir [%s], error: %v ", path, err)
+	}
+	klog.Infof("hostfs-csi NodeUnstageVolume{ StagingTargetPath := %s, VolumeId := %s } ok!", req.StagingTargetPath, req.VolumeId)
+	return &csi.NodeUnstageVolumeResponse{}, nil
 }
 
 // CreateMountPoint creates the directory with given path.
